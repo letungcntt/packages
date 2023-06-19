@@ -40,14 +40,7 @@ protocol ViewProvider {
   var view: NSView? { get }
 }
 
-public class FileSelectorPlugin: NSObject, FlutterPlugin {
-  class SavePanelDelegate: NSObject, NSOpenSavePanelDelegate {
-    func panel(_ sender: Any, shouldEnable url: URL) -> Bool {
-        return url.pathExtension != "app"
-    }
-  }
-
-  private let savePanelDelegate = SavePanelDelegate()
+public class FileSelectorPlugin: NSObject, FlutterPlugin, NSOpenSavePanelDelegate {
   private let viewProvider: ViewProvider
   private let panelController: PanelController
 
@@ -128,8 +121,6 @@ public class FileSelectorPlugin: NSObject, FlutterPlugin {
         panel.allowedFileTypes = allowedTypes
       }
     }
-
-    panel.delegate = savePanelDelegate
   }
 
   /// Configures an NSOpenPanel based on channel method call arguments.
@@ -146,6 +137,12 @@ public class FileSelectorPlugin: NSObject, FlutterPlugin {
       getNonNullValue(for: "multiple", from: arguments) as! Bool? ?? false
     panel.canChooseDirectories = choosingDirectory;
     panel.canChooseFiles = !choosingDirectory;
+    panel.delegate = self
+  }
+    
+  public func panel(_ sender: Any, shouldEnable url: URL) -> Bool {
+    let pathExtension = url.pathExtension.lowercased()
+    return pathExtension != "app"
   }
 }
 
